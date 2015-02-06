@@ -1,0 +1,102 @@
+#!/usr/bin/env bash
+
+JUMPHOST=JUMPHOST_VALUE
+SHELL='SHELL_TERMINAL'
+
+server_count=$#
+square() {
+    number=$1
+    if [[ -z $number ]]; then
+        echo $1
+        return
+    fi
+    series=1
+    square=1
+    root=1
+    while true
+    do
+        if [ $square -le $number ]
+        then
+            if [ $square -eq $number ]
+            then
+                echo "$root"
+                return
+            fi
+            root=$((root+1))
+            series=$((series+2))
+            square=$((square+series))
+        else
+            echo "$root"
+            return
+        fi
+    done
+}
+
+server_count=`square $server_count`
+
+osascript <<-EOF
+tell application "iTerm"
+    set myterm to (make new terminal)
+        tell myterm
+            set mysession to (make new session at the end of sessions)
+            tell mysession
+                    exec command "$SHELL"
+            end tell
+        end tell
+    activate
+end tell
+EOF
+
+current_server=1
+row=0
+for server in ${@}; do
+    osascript <<-EOF
+        tell application "iTerm"
+        tell the current terminal
+        tell the current session
+        write text "$JUMPHOST $server"
+        end tell
+        end tell
+        end tell
+EOF
+    if [[ "$server" == ${@: -1} ]]; then
+        exit 0
+    fi
+    if [[ `expr $current_server % $server_count` -eq 0 ]]; then
+        row=`expr $row + 1`
+    fi
+    if [[ $row -gt 0 ]]; then
+        for i in $(seq 1 ${row}); do
+        osascript <<-EOF
+            tell application "iTerm"
+            tell the current terminal # Create a new pseudo terminal...
+            tell the current session # ... and open a session (window)
+            tell application "System Events" to keystroke "]" using command down
+            end tell
+            end tell
+            end tell
+EOF
+        done
+        osascript <<-EOF
+            tell application "iTerm"
+            tell the current terminal # Create a new pseudo terminal...
+            tell the current session # ... and open a session (window)
+            tell application "System Events" to keystroke "D" using {command down, shift down}
+            end tell
+            end tell
+            end tell
+EOF
+    else
+        osascript <<-EOF
+            tell application "iTerm"
+            tell the current terminal # Create a new pseudo terminal...
+            tell the current session # ... and open a session (window)
+            tell application "System Events" to keystroke "d" using {command down}
+            end tell
+            end tell
+            end tell
+EOF
+    fi
+current_server=`expr $current_server + 1`
+
+done
