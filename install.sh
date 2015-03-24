@@ -1,7 +1,7 @@
 #!/bin/bash
 
 
-echo "What is your jumphost alias?"
+echo "What is your SSH alias?"
 read jumphost
 
 echo "What shell do you use? (E.G. /bin/bash)"
