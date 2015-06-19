@@ -59,7 +59,7 @@ for server in ${@}; do
         end tell
         end tell
 EOF
-    if [[ "$server" == ${@: -1} ]]; then
+    if [[ "$current_server" -ge $# ]]; then
         exit 0
     fi
     if [[ `expr $current_server % $server_count` -eq 0 ]]; then
